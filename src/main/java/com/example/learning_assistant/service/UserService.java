@@ -100,6 +100,7 @@ public class UserService {
         Map<String,Object> responseData = new HashMap<>();
         responseData.put("role",savedUser.getRole());
         responseData.put("email",savedUser.getEmail());
+        responseData.put("name",savedUser.getFullName());
         responseData.put("token", jwtService.generateToken(email, "user"));
         responseData.put("id", savedUser.getId());
 
