@@ -11,8 +11,7 @@ import java.util.Map;
 @Configuration
 public class ProjectConfig {
 
-    Dotenv env = Dotenv.load();
-        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+    Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 
     @Bean
     public Cloudinary getCloudinary(){
@@ -23,10 +22,10 @@ public class ProjectConfig {
             cloudName = System.getenv("CLOUD_NAME");
         }
         if(apiKey == null){
-            cloudName = System.getenv("CLOUD_API_KEY");
+            apiKey = System.getenv("CLOUD_API_KEY");
         }
         if(apiSecret == null){
-            cloudName = System.getenv("CLOUD_API_SECRET");
+            apiSecret = System.getenv("CLOUD_API_SECRET");
         }
 
         Map<String, Object> config = new HashMap<>();
