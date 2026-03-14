@@ -24,7 +24,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final ApplicationContext applicationContext ;
-    private final Dotenv dotenv = Dotenv.load();
+    private final Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 
 
     public JwtFilter(JwtService jwtService, ApplicationContext applicationContext){
@@ -83,10 +83,13 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String[] excudedPaths = dotenv.get("JWT_EXCLUDED_PATHS").split(",");
-//        String[] excudedPaths = System.getenv("JWT_EXCLUDED_PATHS").split(",");
+        String excudedPaths = dotenv.get("JWT_EXCLUDED_PATHS");
+        if(excudedPaths == null){
+            excudedPaths = System.getenv("JWT_EXCLUDED_PATHS");
+        }
+        String[] excudedPathsArray = excudedPaths.split(",");
         String path = request.getServletPath();
-        return Arrays.asList(excudedPaths).contains(path);
+        return Arrays.asList(excudedPathsArray).contains(path);
     }
 
 }
