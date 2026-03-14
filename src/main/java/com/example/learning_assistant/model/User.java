@@ -1,5 +1,6 @@
 package com.example.learning_assistant.model;
 
+import com.example.learning_assistant.model.io.user.ImageData;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,4 +24,5 @@ public class User {
     private String fullName;
     private String phoneNo; // otp verification
     private String gender;
+    private ImageData profileImageData;
 }
