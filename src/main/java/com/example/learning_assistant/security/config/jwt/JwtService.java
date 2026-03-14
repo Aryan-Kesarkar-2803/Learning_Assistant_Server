@@ -18,7 +18,7 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private final Dotenv dotenv = Dotenv.load();
+    private Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 
     public String generateToken(String email, String role){
         Map<String, Object> claims = new HashMap<>();
@@ -35,8 +35,11 @@ public class JwtService {
     }
 
     private SecretKey getKey() {
-//        byte[] keyBytes = Decoders.BASE64.decode(System.getenv("JWT_SECRET"));
-        byte[] keyBytes = Decoders.BASE64.decode(dotenv.get("JWT_SECRET"));
+        String jwtSecret = dotenv.get("JWT_SECRET");
+        if(jwtSecret == null){
+            jwtSecret = System.getenv("JWT_SECRET");
+        }
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
