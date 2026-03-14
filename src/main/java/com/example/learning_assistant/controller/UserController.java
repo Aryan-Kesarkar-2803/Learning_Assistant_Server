@@ -43,9 +43,4 @@ public class UserController {
         return userService.getProfile();
     }
 
-    @GetMapping("/hello")
-    public String helloController(){
-        return "Hello World - Authentication passed";
-    }
-
 }
