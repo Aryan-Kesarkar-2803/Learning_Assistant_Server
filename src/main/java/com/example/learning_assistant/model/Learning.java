@@ -18,4 +18,5 @@ public class Learning {
     private String userId;
     private String topic;
     private ArrayList<Step> roadmap;
+    private Boolean isCompleted;
 }

@@ -50,6 +50,6 @@ public class StarterService {
                 .content();
         return ResponseEntity
                 .status(200)
-                .body(new ApiResponse<>(200, "Successfull",resultResponse));
+                .body(new ApiResponse<>(200, "Successful",resultResponse));
     }
 }
