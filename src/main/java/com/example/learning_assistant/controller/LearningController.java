@@ -19,4 +19,9 @@ public class LearningController {
         return learningService.getUsersLearning(userId);
     }
 
+    @GetMapping("get-learning")
+    public ResponseEntity<Object> getLearningById(@RequestParam String id){
+        return learningService.getLearningById(id);
+    }
+
 }
