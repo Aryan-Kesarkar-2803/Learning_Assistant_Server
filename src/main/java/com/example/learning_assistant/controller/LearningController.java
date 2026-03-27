@@ -24,4 +24,11 @@ public class LearningController {
         return learningService.getLearningById(id);
     }
 
+    @GetMapping("get-youtube-video")
+    public ResponseEntity<Object> getYoutubeVideoforTopic(@RequestParam String topic){
+        return learningService.getYoutubeVideoforTopic(topic);
+    }
+
+
+
 }
