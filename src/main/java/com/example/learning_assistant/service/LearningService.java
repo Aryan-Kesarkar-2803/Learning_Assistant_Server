@@ -1,12 +1,15 @@
 package com.example.learning_assistant.service;
 
 import com.example.learning_assistant.model.Learning;
+import com.example.learning_assistant.model.Notes;
 import com.example.learning_assistant.model.dto.CustomUserLearning;
 import com.example.learning_assistant.model.io.user.ApiResponse;
 import com.example.learning_assistant.model.io.user.VideoResult;
 import com.example.learning_assistant.model.io.user.VideoStats;
 import com.example.learning_assistant.repository.LearningRepo;
+import com.example.learning_assistant.repository.NotesRepo;
 import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,12 +24,70 @@ public class LearningService {
 
     private final Dotenv dotenv =Dotenv.configure().ignoreIfMissing().load();
     private LearningRepo learningRepo;
+    private NotesRepo notesRepo;
     private final RestClient restClient = RestClient.builder().build();
     private String youtubeApiKey;
+    private ChatClient chatClient;
+    private String systemPrompt = """
+            You are a helpful learning assistant.
+           \s
+            Your task is to generate concise, well-structured notes for the given subtopic.
+           \s
+            Content Rules:
+            1. Keep the explanation concise (no long paragraphs).
+            2. Focus only on key understanding of the subtopic.
+            3. Use simple, beginner-friendly language.
+            4. Give in detailed explaination whenever required
+            5. Use bullet points instead of long text wherever possible.
+            6. Include 1–2 short examples only if necessary.
+                    \s
+            Markdown Formatting Rules (STRICT — must follow):
+            1. Use headings like:
+               # Title
+               ## Section Name
+           \s
+            2. ALWAYS add a blank line:
+               - After every heading
+               - Between sections
+               - Before and after lists
+           \s
+            3. Use bullet points with `-` (dash).
+            4. Keep each bullet point to a single line.
+            5. Use inline code with backticks for examples (e.g., `x = 10`).
+            6. Do NOT use tables, HTML, or complex formatting.
+            7. Do NOT compress content into a single block.
+           \s
+            Output Structure (follow this style, but keep it flexible):
+           \s
+            # <Subtopic Title>
+           \s
+            ## Definition
+           \s
+            - Short explanation in 1–2 lines
+           \s
+            ## Key Concepts
+           \s
+            - Point 1 \s
+            - Point 2 \s
+            - Point 3 \s
+           \s
+            ## Examples
+           \s
+            - `example 1` \s
+            - `example 2` \s
+           \s
+            ## Summary
+           \s
+            - Key takeaway 1 \s
+            - Key takeaway 2 \s
+           \s
+            Do not include any text outside the Markdown output.
+           \s""";
 
-    public LearningService(LearningRepo learningRepo){
+    public LearningService(LearningRepo learningRepo, ChatClient.Builder builder, NotesRepo notesRepo){
         this.learningRepo = learningRepo;
-
+        this.chatClient = builder.build();
+        this.notesRepo = notesRepo;
         String apiKey = dotenv.get("YOUTUBE_API_KEY");
         if(apiKey == null){
             apiKey = System.getenv("YOUTUBE_API_KEY");
@@ -111,6 +172,35 @@ public class LearningService {
                                 .status(200)
                                 .build()
                 );
+    }
+
+    public ResponseEntity<Object> generateNotes(String subTopic){
+        if(subTopic == null || subTopic.isEmpty()){
+            throw new RuntimeException("No subtopic received");
+        }
+
+        var resultResponse = "";
+        try{
+            resultResponse = chatClient
+                    .prompt(subTopic)
+                    .system(systemPrompt)
+                    .call()
+                    .content();
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Error in generating Notes");
+        }
+        Notes temp = new Notes();
+        if(!resultResponse.isEmpty()){
+            temp.setData(resultResponse);
+            try{
+                notesRepo.save(temp);
+            } catch (RuntimeException e) {
+                throw new RuntimeException("Error in saving notes to DB");
+            }
+        }
+        return ResponseEntity
+                .status(200)
+                .body(new ApiResponse<>(200, "Successful",temp));
     }
 
     public ResponseEntity<Object> getYoutubeVideoforTopic(String topic) {
@@ -283,8 +373,22 @@ public class LearningService {
         return res.get("result").asDouble();
     }
 
+    public ResponseEntity<Object> getNotesById(String id) {
 
+        Optional<Notes> temp ;
+        try{
+            temp = notesRepo.findById(id);
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Error in fetching notes from DB");
+        }
 
-
-
+        return ResponseEntity.status(200)
+                .body(
+                        ApiResponse.builder()
+                                .data(temp)
+                                .status(200)
+                                .message("successful")
+                                .build()
+                );
+    }
 }

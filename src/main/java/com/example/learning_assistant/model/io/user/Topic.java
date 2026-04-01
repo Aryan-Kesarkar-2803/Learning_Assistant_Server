@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 public class Topic {
     private String topicName;
     private String videoLink;
-    private String docLink;
+    private String docId;
     private Boolean isCompleted;
 }

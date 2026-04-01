@@ -24,6 +24,16 @@ public class LearningController {
         return learningService.getLearningById(id);
     }
 
+    @GetMapping("get-notes")
+    public ResponseEntity<Object> getNotesById(@RequestParam String id){
+        return learningService.getNotesById(id);
+    }
+
+    @GetMapping("generate-notes")
+    public ResponseEntity<Object> getNotesForTopic(@RequestParam String topic){
+        return learningService.generateNotes(topic);
+    }
+
     @GetMapping("get-youtube-video")
     public ResponseEntity<Object> getYoutubeVideoforTopic(@RequestParam String topic){
         return learningService.getYoutubeVideoforTopic(topic);
