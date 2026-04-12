@@ -34,6 +34,11 @@ public class LearningController {
         return learningService.generateNotes(topic);
     }
 
+    @GetMapping("generate-quiz")
+    public ResponseEntity<Object> generateQuizForSubtopic(@RequestParam String topic){
+        return learningService.generateQuiz(topic);
+    }
+
     @GetMapping("get-youtube-video")
     public ResponseEntity<Object> getYoutubeVideoforTopic(@RequestParam String topic){
         return learningService.getYoutubeVideoforTopic(topic);

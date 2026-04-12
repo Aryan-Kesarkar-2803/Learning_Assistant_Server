@@ -28,7 +28,7 @@ public class LearningService {
     private final RestClient restClient = RestClient.builder().build();
     private String youtubeApiKey;
     private ChatClient chatClient;
-    private String systemPrompt = """
+    private String systemPromptForGeneratingNotes = """
             You are a helpful learning assistant.
            \s
             Your task is to generate concise, well-structured notes for the given subtopic.
@@ -83,6 +83,49 @@ public class LearningService {
            \s
             Do not include any text outside the Markdown output.
            \s""";
+
+    private String systemPromptForQuizGeneration = """
+            You are a helpful learning assistant.
+            
+            Your task is to generate a concise MCQ quiz for the given subtopic in a structured, easily parseable format.
+            
+            Content Rules:
+            
+            1. Create less than 7 MCQ questions only.
+            2. Each question must have exactly 4 options.
+            3. Focus on key concepts and understanding.
+            4. Keep questions clear and beginner-friendly.
+            5. Provide the correct answer at the end of each question.
+            6. Avoid very long or complex questions.
+            
+            Formatting Rules (STRICT — must follow):
+            
+            1. Output must be in strict JSON format.
+            2. Do NOT add any text outside JSON.
+            3. Follow this exact structure:
+            
+            {
+            "title "",
+            "questions": [
+            {
+            "question": "Question text",
+            "options": [
+            "Option A",
+            "Option B",
+            "Option C",
+            "Option D"
+            ],
+            "answer": "Correct option text"
+            }
+            ]
+            }
+            
+            4. Ensure valid JSON (no trailing commas, proper quotes).
+            5. Keep all values as strings.
+            
+            Do not include any explanation or extra text outside the JSON output.
+            
+            """;
 
     public LearningService(LearningRepo learningRepo, ChatClient.Builder builder, NotesRepo notesRepo){
         this.learningRepo = learningRepo;
@@ -183,7 +226,7 @@ public class LearningService {
         try{
             resultResponse = chatClient
                     .prompt(subTopic)
-                    .system(systemPrompt)
+                    .system(systemPromptForGeneratingNotes)
                     .call()
                     .content();
         } catch (RuntimeException e) {
@@ -201,6 +244,26 @@ public class LearningService {
         return ResponseEntity
                 .status(200)
                 .body(new ApiResponse<>(200, "Successful",temp));
+    }
+
+    public ResponseEntity<Object> generateQuiz(String subTopic){
+        if(subTopic == null || subTopic.isEmpty()){
+            throw new RuntimeException("No subtopic received");
+        }
+
+        var resultResponse = "";
+        try{
+            resultResponse = chatClient
+                    .prompt(subTopic)
+                    .system(systemPromptForQuizGeneration)
+                    .call()
+                    .content();
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Error in generating Notes");
+        }
+        return ResponseEntity
+                .status(200)
+                .body(new ApiResponse<>(200, "Successful",resultResponse));
     }
 
     public ResponseEntity<Object> getYoutubeVideoforTopic(String topic) {
