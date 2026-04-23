@@ -282,6 +282,8 @@ public class LearningService {
                         .queryParam("maxResults", 10)
                         .queryParam("key", youtubeApiKey)
                         .build())
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                .header("Accept", "application/json")
                 .retrieve()
                 .body(String.class);
 
@@ -431,6 +433,8 @@ public class LearningService {
         JsonNode res =  restClient
                 .post()
                 .uri(sentimentModelBaseUrl+"/analyze")
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                .header("Accept", "application/json")
                 .body(body)
                         .retrieve()
                 .body(JsonNode.class);
