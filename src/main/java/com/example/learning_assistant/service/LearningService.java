@@ -180,6 +180,7 @@ public class LearningService {
                         .topic(item.getTopic())
                         .isCompleted(item.getIsCompleted())
                         .isStarted(item.getRoadmap().getFirst().getTopics().getFirst().getIsCompleted())
+                        .progress(item.getProgress())
                         .build()
                 ).toList();
 
@@ -307,7 +308,7 @@ public class LearningService {
             VideoStats temp = extractMetadataVideo(r.getVideoId());
 
             double likesRatio = (double) temp.getLikeCount()/temp.getViewCount();
-            double overallScore = (0.6 * r.getSentimenScore()) + (0.4 * likesRatio);
+            double overallScore = (0.5 * r.getSentimenScore()) + (0.5 * likesRatio);
 
             if(overallScore > res.getOverallScore()){
                 res = r;

@@ -19,4 +19,5 @@ public class Learning {
     private String topic;
     private ArrayList<Step> roadmap;
     private Boolean isCompleted;
+    private double progress = 0;
 }

@@ -14,5 +14,5 @@ public class CustomUserLearning {
     private String topic;
     private Boolean isCompleted;
     private Boolean isStarted;
-    private String progress;
+    private double progress;
 }

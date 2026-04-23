@@ -38,6 +38,7 @@ public class StarterService {
             - Expand the topic into ALL major concepts, tools, and subdomains
             - Ensure NO important area is missed
             - Generate a structured roadmap with consistent depth and coverage
+            - Each subtopic must be whole. dont divide it further.
             - Maintain logical progression (where applicable)
             - Ensure each step covers distinct concepts (avoid repetition)
             
