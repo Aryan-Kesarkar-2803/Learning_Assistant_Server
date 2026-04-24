@@ -10,6 +10,7 @@ import com.example.learning_assistant.repository.LearningRepo;
 import com.example.learning_assistant.repository.NotesRepo;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.boot.jackson.autoconfigure.JacksonProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -303,7 +304,7 @@ public class LearningService {
                             .videoLink("https://www.youtube.com/watch?v="+videoId)
                             .build());
         }
-
+        System.out.println("All APi called");
         VideoResult res = results.getFirst();
 
         for(VideoResult r: results){
@@ -430,14 +431,21 @@ public class LearningService {
 
         Map<String,Object> body = new HashMap<>();
         body.put("text", comments);
-        JsonNode res =  restClient
-                .post()
-                .uri(sentimentModelBaseUrl+"/analyze")
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-                .header("Accept", "application/json")
-                .body(body)
-                        .retrieve()
-                .body(JsonNode.class);
+        JsonNode res;
+        try{
+            res =  restClient
+                    .post()
+                    .uri(sentimentModelBaseUrl+"/analyze")
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                    .header("Accept", "application/json")
+                    .body(body)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException("Error in Analyzing video comments");
+        }
+
         return res.get("result").asDouble();
     }
 

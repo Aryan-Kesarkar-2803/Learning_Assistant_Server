@@ -51,6 +51,13 @@ public class RestExceptionHandler {
                 .body(new ApiResponse<>(HttpStatus.BAD_REQUEST.value(),e.getMessage(),null));
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Object> handleRuntimeException(RuntimeException e){
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new ApiResponse<>(HttpStatus.SERVICE_UNAVAILABLE.value(), e.getMessage(),null));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGeneralException(Exception e){
         return ResponseEntity
