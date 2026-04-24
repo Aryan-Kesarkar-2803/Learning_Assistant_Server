@@ -23,67 +23,67 @@ import java.util.*;
 @Service
 public class LearningService {
 
-    private final Dotenv dotenv =Dotenv.configure().ignoreIfMissing().load();
+    private final Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
     private LearningRepo learningRepo;
     private NotesRepo notesRepo;
     private final RestClient restClient = RestClient.builder().build();
     private String youtubeApiKey;
     private ChatClient chatClient;
     private String systemPromptForGeneratingNotes = """
-            You are a helpful learning assistant.
-           \s
-            Your task is to generate concise, well-structured notes for the given subtopic.
-           \s
-            Content Rules:
-            1. Keep the explanation concise (no long paragraphs).
-            2. Focus only on key understanding of the subtopic.
-            3. Use simple, beginner-friendly language.
-            4. Give in detailed explaination whenever required
-            5. Use bullet points instead of long text wherever possible.
-            6. Include 1–2 short examples only if necessary.
-                    \s
-            Markdown Formatting Rules (STRICT — must follow):
-            1. Use headings like:
-               # Title
-               ## Section Name
-           \s
-            2. ALWAYS add a blank line:
-               - After every heading
-               - Between sections
-               - Before and after lists
-           \s
-            3. Use bullet points with `-` (dash).
-            4. Keep each bullet point to a single line.
-            5. Use inline code with backticks for examples (e.g., `x = 10`).
-            6. Do NOT use tables, HTML, or complex formatting.
-            7. Do NOT compress content into a single block.
-           \s
-            Output Structure (follow this style, but keep it flexible):
-           \s
-            # <Subtopic Title>
-           \s
-            ## Definition
-           \s
-            - Short explanation in 1–2 lines
-           \s
-            ## Key Concepts
-           \s
-            - Point 1 \s
-            - Point 2 \s
-            - Point 3 \s
-           \s
-            ## Examples
-           \s
-            - `example 1` \s
-            - `example 2` \s
-           \s
-            ## Summary
-           \s
-            - Key takeaway 1 \s
-            - Key takeaway 2 \s
-           \s
-            Do not include any text outside the Markdown output.
-           \s""";
+             You are a helpful learning assistant.
+            \s
+             Your task is to generate concise, well-structured notes for the given subtopic.
+            \s
+             Content Rules:
+             1. Keep the explanation concise (no long paragraphs).
+             2. Focus only on key understanding of the subtopic.
+             3. Use simple, beginner-friendly language.
+             4. Give in detailed explaination whenever required
+             5. Use bullet points instead of long text wherever possible.
+             6. Include 1–2 short examples only if necessary.
+                     \s
+             Markdown Formatting Rules (STRICT — must follow):
+             1. Use headings like:
+                # Title
+                ## Section Name
+            \s
+             2. ALWAYS add a blank line:
+                - After every heading
+                - Between sections
+                - Before and after lists
+            \s
+             3. Use bullet points with `-` (dash).
+             4. Keep each bullet point to a single line.
+             5. Use inline code with backticks for examples (e.g., `x = 10`).
+             6. Do NOT use tables, HTML, or complex formatting.
+             7. Do NOT compress content into a single block.
+            \s
+             Output Structure (follow this style, but keep it flexible):
+            \s
+             # <Subtopic Title>
+            \s
+             ## Definition
+            \s
+             - Short explanation in 1–2 lines
+            \s
+             ## Key Concepts
+            \s
+             - Point 1 \s
+             - Point 2 \s
+             - Point 3 \s
+            \s
+             ## Examples
+            \s
+             - `example 1` \s
+             - `example 2` \s
+            \s
+             ## Summary
+            \s
+             - Key takeaway 1 \s
+             - Key takeaway 2 \s
+            \s
+             Do not include any text outside the Markdown output.
+            \s""";
 
     private String systemPromptForQuizGeneration = """
             You are a helpful learning assistant.
@@ -128,45 +128,75 @@ public class LearningService {
             
             """;
 
-    public LearningService(LearningRepo learningRepo, ChatClient.Builder builder, NotesRepo notesRepo){
+    private String systemPromptForSolvingDoubt = """
+            You are an AI assistant designed to help users solve doubts and answer questions clearly and accurately.
+            
+         
+            - Respond ONLY to questions related to the given subject/domain.
+            - If a question is outside the topic, politely say it is out of scope and ask the user to stay within relevant doubts.
+            
+
+            - Keep answers simple, clear, and to the point.
+            - Be concise by default.
+            - Provide detailed explanations ONLY if explicitly requested.
+            - Avoid unnecessary information.
+            
+            Format of doubt will be - doubt in context with base topic.
+            Only include doubt in response and not base topic
+           
+            - If a question is unclear or ambiguous, ask a short clarification instead of guessing.
+            - Prefer step-by-step explanations for problem-solving questions.
+            
+           
+            - Use clean structure with bullet points or steps when needed.
+            - Highlight key points for better readability.
+            - Keep responses well-organized and easy to scan.
+            
+       
+            - Maintain a helpful, professional, and neutral tone.
+            - Do not be verbose or overly explanatory unless asked.
+            
+            """;
+
+    public LearningService(LearningRepo learningRepo, ChatClient.Builder builder, NotesRepo notesRepo) {
         this.learningRepo = learningRepo;
         this.chatClient = builder.build();
         this.notesRepo = notesRepo;
         String apiKey = dotenv.get("YOUTUBE_API_KEY");
-        if(apiKey == null){
+        if (apiKey == null) {
             apiKey = System.getenv("YOUTUBE_API_KEY");
         }
         this.youtubeApiKey = apiKey;
     }
 
-    public ResponseEntity<Object> saveRoadmap(Learning learning){
+    public ResponseEntity<Object> saveRoadmap(Learning learning) {
         Learning result = null;
-        try{
+        try {
             result = learningRepo.save(learning);
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Unable to save roadmap");
         }
 
-       return ResponseEntity
-               .status(HttpStatus.OK)
-               .body(
-                       ApiResponse.builder()
-                               .status(200)
-                               .message("Roadmap Saved successfully")
-                               .build()
-               );
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .status(200)
+                                .message("Roadmap Saved successfully")
+                                .build()
+                );
 
 
     }
 
-    public ResponseEntity<Object> getUsersLearning(String userId){
+    public ResponseEntity<Object> getUsersLearning(String userId) {
 
-        if(userId.isEmpty()){
+        if (userId.isEmpty()) {
             throw new RuntimeException("UserId missing");
         }
 
         List<Learning> response;
-        try{
+        try {
             response = learningRepo.findByUserId(userId);
         } catch (Exception e) {
             throw new RuntimeException("Unable to fetch Learning");
@@ -183,7 +213,7 @@ public class LearningService {
                         .isStarted(item.getRoadmap().getFirst().getTopics().getFirst().getIsCompleted())
                         .progress(item.getProgress())
                         .build()
-                ).toList();
+        ).toList();
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -196,16 +226,15 @@ public class LearningService {
                 );
 
 
-
     }
 
     public ResponseEntity<Object> getLearningById(String id) {
-        if(id == null || id.isEmpty()){
+        if (id == null || id.isEmpty()) {
             throw new RuntimeException("Learning id required");
         }
 
         Optional<Learning> response = learningRepo.findById(id);
-        if(response.isEmpty()){
+        if (response.isEmpty()) {
             throw new RuntimeException("Error in finding learning using id");
         }
         return ResponseEntity
@@ -219,13 +248,13 @@ public class LearningService {
                 );
     }
 
-    public ResponseEntity<Object> generateNotes(String subTopic){
-        if(subTopic == null || subTopic.isEmpty()){
+    public ResponseEntity<Object> generateNotes(String subTopic) {
+        if (subTopic == null || subTopic.isEmpty()) {
             throw new RuntimeException("No subtopic received");
         }
 
         var resultResponse = "";
-        try{
+        try {
             resultResponse = chatClient
                     .prompt(subTopic)
                     .system(systemPromptForGeneratingNotes)
@@ -235,9 +264,9 @@ public class LearningService {
             throw new RuntimeException("Error in generating Notes");
         }
         Notes temp = new Notes();
-        if(!resultResponse.isEmpty()){
+        if (!resultResponse.isEmpty()) {
             temp.setData(resultResponse);
-            try{
+            try {
                 notesRepo.save(temp);
             } catch (RuntimeException e) {
                 throw new RuntimeException("Error in saving notes to DB");
@@ -245,16 +274,16 @@ public class LearningService {
         }
         return ResponseEntity
                 .status(200)
-                .body(new ApiResponse<>(200, "Successful",temp));
+                .body(new ApiResponse<>(200, "Successful", temp));
     }
 
-    public ResponseEntity<Object> generateQuiz(String subTopic){
-        if(subTopic == null || subTopic.isEmpty()){
+    public ResponseEntity<Object> generateQuiz(String subTopic) {
+        if (subTopic == null || subTopic.isEmpty()) {
             throw new RuntimeException("No subtopic received");
         }
 
         var resultResponse = "";
-        try{
+        try {
             resultResponse = chatClient
                     .prompt(subTopic)
                     .system(systemPromptForQuizGeneration)
@@ -265,11 +294,11 @@ public class LearningService {
         }
         return ResponseEntity
                 .status(200)
-                .body(new ApiResponse<>(200, "Successful",resultResponse));
+                .body(new ApiResponse<>(200, "Successful", resultResponse));
     }
 
     public ResponseEntity<Object> getYoutubeVideoforTopic(String topic) {
-        if(topic == null || topic.isEmpty()){
+        if (topic == null || topic.isEmpty()) {
             throw new RuntimeException("Topic not received");
         }
         String response = restClient.get()
@@ -292,28 +321,28 @@ public class LearningService {
 
         ArrayList<VideoResult> results = new ArrayList<>();
 
-        for(String videoId: videoIds){
+        for (String videoId : videoIds) {
             double score = getGenericCommentScoreForVideo(videoId);
-            if(score <= 0){
+            if (score <= 0) {
                 continue;
             }
             results.add(
                     VideoResult.builder()
                             .sentimenScore(score)
                             .videoId(videoId)
-                            .videoLink("https://www.youtube.com/watch?v="+videoId)
+                            .videoLink("https://www.youtube.com/watch?v=" + videoId)
                             .build());
         }
         System.out.println("All APi called");
         VideoResult res = results.getFirst();
 
-        for(VideoResult r: results){
+        for (VideoResult r : results) {
             VideoStats temp = extractMetadataVideo(r.getVideoId());
 
-            double likesRatio = (double) temp.getLikeCount()/temp.getViewCount();
+            double likesRatio = (double) temp.getLikeCount() / temp.getViewCount();
             double overallScore = (0.5 * r.getSentimenScore()) + (0.5 * likesRatio);
 
-            if(overallScore > res.getOverallScore()){
+            if (overallScore > res.getOverallScore()) {
                 res = r;
                 res.setOverallScore(overallScore);
             }
@@ -348,7 +377,7 @@ public class LearningService {
         return ids;
     }
 
-    private VideoStats extractMetadataVideo(String videoId){
+    private VideoStats extractMetadataVideo(String videoId) {
         String response = restClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .scheme("https")
@@ -373,7 +402,7 @@ public class LearningService {
 
     }
 
-    private List<String> extractVideoComments(String videoId){
+    private List<String> extractVideoComments(String videoId) {
 
         String response = restClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -414,28 +443,28 @@ public class LearningService {
     private double getGenericCommentScoreForVideo(String videoId) {
         String sentimentModelBaseUrl = dotenv.get("SENTIMENT_MODEL_BASE_URL");
 
-        if(sentimentModelBaseUrl == null){
+        if (sentimentModelBaseUrl == null) {
             sentimentModelBaseUrl = System.getenv("SENTIMENT_MODEL_BASE_URL");
         }
 
         List<String> comments;
-        try{
-           comments = extractVideoComments(videoId);
-        }catch (Exception e){
+        try {
+            comments = extractVideoComments(videoId);
+        } catch (Exception e) {
             return 0;
         }
 
-        if(comments.size() <= 0 || comments.size() < 40){
+        if (comments.size() <= 0 || comments.size() < 40) {
             return 0;
         }
 
-        Map<String,Object> body = new HashMap<>();
+        Map<String, Object> body = new HashMap<>();
         body.put("text", comments);
         JsonNode res;
-        try{
-            res =  restClient
+        try {
+            res = restClient
                     .post()
-                    .uri(sentimentModelBaseUrl+"/analyze")
+                    .uri(sentimentModelBaseUrl + "/analyze")
                     .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
                     .header("Accept", "application/json")
                     .body(body)
@@ -451,8 +480,8 @@ public class LearningService {
 
     public ResponseEntity<Object> getNotesById(String id) {
 
-        Optional<Notes> temp ;
-        try{
+        Optional<Notes> temp;
+        try {
             temp = notesRepo.findById(id);
         } catch (RuntimeException e) {
             throw new RuntimeException("Error in fetching notes from DB");
@@ -466,5 +495,26 @@ public class LearningService {
                                 .message("successful")
                                 .build()
                 );
+    }
+
+    public ResponseEntity<Object> solveDoubtForTopic(String input) {
+
+        if (input == null || input.isEmpty()) {
+            throw new RuntimeException("No subtopic received");
+        }
+
+        var resultResponse = "";
+        try {
+            resultResponse = chatClient
+                    .prompt(input)
+                    .system(systemPromptForSolvingDoubt)
+                    .call()
+                    .content();
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Error in generating response");
+        }
+        return ResponseEntity
+                .status(200)
+                .body(new ApiResponse<>(200, "Successful", resultResponse));
     }
 }

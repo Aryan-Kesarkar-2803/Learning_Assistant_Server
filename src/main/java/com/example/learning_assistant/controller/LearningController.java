@@ -44,6 +44,11 @@ public class LearningController {
         return learningService.getYoutubeVideoforTopic(topic);
     }
 
+    @GetMapping("solve-doubt")
+    public ResponseEntity<Object> solveDoubtForTopic(@RequestParam String doubt){
+        return learningService.solveDoubtForTopic(doubt);
+    }
+
 
 
 }
