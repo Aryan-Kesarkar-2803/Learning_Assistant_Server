@@ -301,24 +301,29 @@ public class LearningService {
         if (topic == null || topic.isEmpty()) {
             throw new RuntimeException("Topic not received");
         }
-        String response = restClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
-                        .host("www.googleapis.com")
-                        .path("/youtube/v3/search")
-                        .queryParam("part", "snippet")
-                        .queryParam("q", topic)
-                        .queryParam("type", "video")
-                        .queryParam("maxResults", 10)
-                        .queryParam("key", youtubeApiKey)
-                        .build())
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-                .header("Accept", "application/json")
-                .retrieve()
-                .body(String.class);
+        String response;
+        try {
+             response = restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .scheme("https")
+                            .host("www.googleapis.com")
+                            .path("/youtube/v3/search")
+                            .queryParam("part", "snippet")
+                            .queryParam("q", topic)
+                            .queryParam("type", "video")
+                            .queryParam("maxResults", 10)
+                            .queryParam("key", youtubeApiKey)
+                            .build())
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                    .header("Accept", "application/json")
+                    .retrieve()
+                    .body(String.class);
+        } catch (RuntimeException e) {
+            System.out.println("Exception - "+e.getMessage());
+            throw new RuntimeException("Error in getting videos");
+        }
 
         List<String> videoIds = extractVideoIds(response);
-
         ArrayList<VideoResult> results = new ArrayList<>();
 
         for (String videoId : videoIds) {
@@ -333,14 +338,12 @@ public class LearningService {
                             .videoLink("https://www.youtube.com/watch?v=" + videoId)
                             .build());
         }
-        System.out.println("All APi called");
         VideoResult res = results.getFirst();
 
         for (VideoResult r : results) {
             VideoStats temp = extractMetadataVideo(r.getVideoId());
-
             double likesRatio = (double) temp.getLikeCount() / temp.getViewCount();
-            double overallScore = (0.5 * r.getSentimenScore()) + (0.5 * likesRatio);
+            double overallScore = (0.3 * r.getSentimenScore()) + (0.7 * likesRatio);
 
             if (overallScore > res.getOverallScore()) {
                 res = r;
@@ -378,18 +381,24 @@ public class LearningService {
     }
 
     private VideoStats extractMetadataVideo(String videoId) {
-        String response = restClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
-                        .host("www.googleapis.com")
-                        .path("/youtube/v3/videos")
-                        .queryParam("part", "snippet,statistics")
-                        .queryParam("id", videoId)
-                        .queryParam("key", youtubeApiKey)
-                        .build())
-                .retrieve()
-                .body(String.class);
+        String response;
+        try{
+            response = restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .scheme("https")
+                            .host("www.googleapis.com")
+                            .path("/youtube/v3/videos")
+                            .queryParam("part", "snippet,statistics")
+                            .queryParam("id", videoId)
+                            .queryParam("key", youtubeApiKey)
+                            .build())
+                    .retrieve()
+                    .body(String.class);
 
+        } catch (RuntimeException e) {
+            System.out.println("Exception - "+e.getMessage());
+            throw new RuntimeException("Error in processing video");
+        }
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(response);
         JsonNode item = node.get("items").get(0);
@@ -453,14 +462,14 @@ public class LearningService {
         } catch (Exception e) {
             return 0;
         }
-
-        if (comments.size() <= 0 || comments.size() < 40) {
+        if (comments.size() <= 0 || comments.size() < 5) {
             return 0;
         }
 
         Map<String, Object> body = new HashMap<>();
         body.put("text", comments);
         JsonNode res;
+
         try {
             res = restClient
                     .post()
@@ -474,7 +483,6 @@ public class LearningService {
             System.out.println(e.getMessage());
             throw new RuntimeException("Error in Analyzing video comments");
         }
-
         return res.get("result").asDouble();
     }
 
