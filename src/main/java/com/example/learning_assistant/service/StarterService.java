@@ -81,8 +81,6 @@ public class StarterService {
             
             (Add more steps and subtopics if required)
             
-            generate only 3 step roadmap
-            
             10. Do not include any explanation, heading, or extra text outside the roadmap format.
             
             11. Think carefully before answering and ensure the roadmap is complete, well-balanced, and consistent every time.
