@@ -17,12 +17,13 @@ public class StarterService {
                        Your task is to analyze the user input and respond according to the rules below.
             
                        1. Determine whether the input is a valid learnable topic.
-                       A valid topic is something that can realistically be learned through online resources such as programming, technologies, tools, skills, or academic subjects, etc.
+                       A valid topic includes any skill, subject, technology, tool, framework, academic field, or interdisciplinary domain that can be learned online.
             
                        2. If the input is not a learning topic, return exactly:
                        Invalid input: Please enter a valid topic to learn.
             
-                       3. If the topic is out of scope, return exactly:
+                       3. Out of scope only if the topic is clearly non-learnable, fictional without educational use, or not a real study domain. 
+                       If the topic is out of scope, return exactly:
                        Out of scope: I cannot generate a roadmap for this topic.
             
                        4. If the topic is illegal, harmful, or unethical, return exactly:
@@ -36,22 +37,20 @@ public class StarterService {
                          • If the topic includes "advanced", generate ONLY advanced-level roadmap
             
                        - Expand the topic into ALL major concepts, tools, and subdomains
-                       - If the topic is atomic (cannot be divided further), generate only required steps, not generate more.
+                       - Use the minimum number of steps needed.
                        - Ensure NO important area is missed
                        - Generate a structured roadmap with consistent depth and coverage
-                       - Each subtopic must be whole. dont divide it further.
                        - Maintain logical progression (where applicable)
                        - Ensure each step covers distinct concepts (avoid repetition)
             
                        6. Subtopic rules:
-                       - Each subtopic must represent ONLY ONE concept (atomic)
-                       - Do NOT combine multiple topics in one line
-                       - Avoid vague terms like "basics", "advanced concepts"
-                       - Use clear, specific, and practical subtopics
-                       - Break complex ideas into smaller subtopics
-                       - Maintain consistent depth across all steps
-            
-                       7. Coverage rules:
+                       - Each subtopic must contain exactly one concept.
+                       - Do not join two related concepts in the same line.
+                       - Do not use parentheses, slashes, commas, or conjunctions like "and" to combine topics.
+                       - Split combined ideas into separate subtopics.
+                        
+                       7. For broad or interdisciplinary topics, infer the standard learning areas and generate a roadmap from fundamentals to applications.
+                       8. Coverage rules:
                        - Must include:
                          • Core fundamentals
                          • Key concepts
@@ -61,13 +60,10 @@ public class StarterService {
                          • Performance or optimization (if applicable)
                        - Do NOT skip industry-standard topics
             
-                       8. Structure rules:
-                       - Number of steps is FLEXIBLE based on topic complexity
-                       - Each step must have at least 2 subtopics
-                       - Add more steps and subtopics as needed for completeness
-                       - Ensure balanced distribution of content
+                       9. Structure rules:
+                       - Use as many steps as needed. Do not force unnecessary steps for small topics.
             
-                       9. Strict output format:
+                       10. Strict output format:
                        • Step 1:
                        - Subtopic
                        - Subtopic
@@ -82,9 +78,15 @@ public class StarterService {
             
                        (Add more steps and subtopics if required)
             
-                       10. Do not include any explanation, heading, or extra text outside the roadmap format.
+                       11. Do not include any explanation, heading, or extra text outside the roadmap format.
+                       
+                       12. If a topic is broad but valid, do not reject it; generate the most standard roadmap for that domain.
             
-                       11. Think carefully before answering and ensure the roadmap is complete, well-balanced, and consistent every time.
+                       13. Ensure the roadmap is logically ordered, complete, and non-repetitive.
+                       
+                       14. Atomicity enforcement:
+                       - A subtopic must be split if it can be taught independently.
+                       - If a line contains two learnable ideas, rewrite it as two separate subtopics.
             """;
 
     public StarterService(ChatClient.Builder builder){
